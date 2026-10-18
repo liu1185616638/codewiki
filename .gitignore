@@ -1,0 +1,11 @@
+/target/
+/codewiki-output/
+*.db
+*.db-shm
+*.db-wal
+.env
+.env.*
+!.env.example
+.DS_Store
+.idea/
+.vscode/

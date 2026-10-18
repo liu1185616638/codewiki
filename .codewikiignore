@@ -1,0 +1,9 @@
+# Files that are not useful as code/documentation evidence.
+**/node_modules/
+**/target/
+**/dist/
+**/build/
+**/.git/
+**/coverage/
+**/*.min.js
+**/*.map

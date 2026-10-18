@@ -1,0 +1,19 @@
+[package]
+name = "codewiki-cli"
+description = "CodeWiki command-line interface"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "codewiki"
+path = "src/main.rs"
+
+[dependencies]
+clap.workspace = true
+serde_json.workspace = true
+codewiki-core.workspace = true
+codewiki-analysis.workspace = true
+codewiki-wiki.workspace = true
