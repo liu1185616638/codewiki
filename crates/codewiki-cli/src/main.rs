@@ -45,13 +45,22 @@ fn run() -> Result<()> {
                 println!("{}", serde_json::to_string_pretty(&report)?);
             } else {
                 println!("Included files: {}", report.stats.included_files);
-                println!("Sensitive files skipped: {}", report.stats.skipped_sensitive);
-                println!("Oversized files skipped: {}", report.stats.skipped_oversized);
+                println!(
+                    "Sensitive files skipped: {}",
+                    report.stats.skipped_sensitive
+                );
+                println!(
+                    "Oversized files skipped: {}",
+                    report.stats.skipped_oversized
+                );
                 println!(
                     "Binary/non-UTF8 files skipped: {}",
                     report.stats.skipped_binary_or_non_utf8
                 );
-                println!("Unsupported files skipped: {}", report.stats.skipped_unsupported);
+                println!(
+                    "Unsupported files skipped: {}",
+                    report.stats.skipped_unsupported
+                );
             }
         }
         Command::Generate {
@@ -62,7 +71,11 @@ fn run() -> Result<()> {
             let report = scan_repository(path)?;
             let wiki = compile_outline(&report);
             write_markdown(&wiki, &output, overwrite)?;
-            println!("Generated {} pages in {}", wiki.pages.len(), output.display());
+            println!(
+                "Generated {} pages in {}",
+                wiki.pages.len(),
+                output.display()
+            );
         }
     }
     Ok(())
