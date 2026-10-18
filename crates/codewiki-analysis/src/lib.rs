@@ -25,6 +25,7 @@ pub fn scan_repository(root: impl AsRef<Path>) -> Result<ScanReport> {
         .hidden(false)
         .git_ignore(true)
         .git_exclude(true)
+        .require_git(false)
         .follow_links(false)
         .add_custom_ignore_filename(".codewikiignore")
         .filter_entry(should_descend);
@@ -164,7 +165,12 @@ mod tests {
         assert_eq!(report.files[0].path, "src/main.rs");
         assert_eq!(report.files[0].language, "Rust");
         assert_eq!(report.files[0].sha256.len(), 64);
-        assert!(report.files.iter().all(|file| !file.path.contains("secret")));
+        assert!(
+            report
+                .files
+                .iter()
+                .all(|file| !file.path.contains("secret"))
+        );
     }
 
     #[test]
