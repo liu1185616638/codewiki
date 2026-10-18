@@ -137,8 +137,7 @@ fn escape_markdown(input: &str) -> String {
         .replace(']', "\\]")
         .replace('(', "\\(")
         .replace(')', "\\)")
-        .replace('\n', " ")
-        .replace('\r', " ")
+        .replace(['\n', '\r'], " ")
 }
 
 #[cfg(test)]
