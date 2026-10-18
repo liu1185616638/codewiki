@@ -2,11 +2,9 @@
 
 use std::collections::BTreeMap;
 use std::fs;
-use std::path::Path;
+use std::path::{Component, Path};
 
-use codewiki_core::{
-    CodeWikiError, Result, ScanReport, SourceFile, WikiBundle, WikiPage,
-};
+use codewiki_core::{CodeWikiError, Result, ScanReport, SourceFile, WikiBundle, WikiPage};
 use sha2::{Digest, Sha256};
 
 /// Build a deterministic, source-backed overview and one page per top-level folder.
@@ -42,10 +40,12 @@ pub fn compile_outline(report: &ScanReport) -> WikiBundle {
         let digest = format!("{:x}", Sha256::digest(module.as_bytes()));
         let basename: String = module
             .chars()
-            .map(|ch| if ch.is_ascii_alphanumeric() || ch == '-' || ch == '_' {
-                ch
-            } else {
-                '-'
+            .map(|ch| {
+                if ch.is_ascii_alphanumeric() || ch == '-' || ch == '_' {
+                    ch
+                } else {
+                    '-'
+                }
             })
             .collect();
         let basename = if basename.trim_matches('-').is_empty() {
@@ -96,9 +96,22 @@ pub fn compile_outline(report: &ScanReport) -> WikiBundle {
 }
 
 /// Refuses to overwrite existing pages unless explicitly requested.
-pub fn write_markdown(bundle: &WikiBundle, output: impl AsRef<Path>, overwrite: bool) -> Result<()> {
+pub fn write_markdown(
+    bundle: &WikiBundle,
+    output: impl AsRef<Path>,
+    overwrite: bool,
+) -> Result<()> {
     let output = output.as_ref();
     for page in &bundle.pages {
+        if Path::new(&page.path)
+            .components()
+            .any(|part| !matches!(part, Component::Normal(_)))
+        {
+            return Err(CodeWikiError::InvalidInput(format!(
+                "unsafe Wiki page path: {}",
+                page.path
+            )));
+        }
         let destination = output.join(&page.path);
         if destination.exists() && !overwrite {
             return Err(CodeWikiError::InvalidInput(format!(
@@ -130,7 +143,7 @@ fn escape_markdown(input: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use codewiki_core::{ScanReport, ScanStats, SourceFile};
+    use codewiki_core::{ScanReport, ScanStats, SourceFile, WikiBundle, WikiPage};
 
     use super::{compile_outline, write_markdown};
 
@@ -158,5 +171,20 @@ mod tests {
         assert!(temp.path().join("overview.md").exists());
         assert!(write_markdown(&bundle, temp.path(), false).is_err());
         write_markdown(&bundle, temp.path(), true).unwrap();
+    }
+
+    #[test]
+    fn rejects_path_traversal() {
+        let temp = tempfile::tempdir().unwrap();
+        let bundle = WikiBundle {
+            pages: vec![WikiPage {
+                path: "../escape.md".into(),
+                title: "bad".into(),
+                markdown: "not allowed".into(),
+                sources: vec![],
+            }],
+        };
+        assert!(write_markdown(&bundle, temp.path(), false).is_err());
+        assert!(!temp.path().join("../escape.md").exists());
     }
 }
